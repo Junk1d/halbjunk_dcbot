@@ -1,5 +1,6 @@
 package de.halbjunk.dcbot.clans;
 
+
 import de.halbjunk.dcbot.Main;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
