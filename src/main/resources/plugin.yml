@@ -1,0 +1,10 @@
+name: Dcbot
+version: '${project.version}'
+main: de.halbjunk.dcbot.Main
+api-version: 1.19
+authors: [ Junk1d ]
+website: Halbjunk.de
+
+commands:
+  clan:
+    description: Clan
