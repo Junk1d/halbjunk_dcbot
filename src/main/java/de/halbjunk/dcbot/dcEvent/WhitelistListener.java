@@ -2,11 +2,19 @@ package de.halbjunk.dcbot.dcEvent;
 
 import de.halbjunk.dcbot.Main;
 //import jdk.nashorn.internal.parser.JSONParser;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -19,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 
 public class WhitelistListener extends ListenerAdapter{
@@ -64,6 +73,36 @@ public class WhitelistListener extends ListenerAdapter{
 
     }
 
+    @Override
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        String command = event.getName();
+        if( ! command.equals("setwhitelistchannel"))return;
+
+//        if(event.getMember().isOwner()){
+//            event.reply("owner").setEphemeral(true).queue();
+//            return;
+//        }
+        event.reply("test passed").setEphemeral(true).queue();
+        event.getChannel().sendMessage("awdawd").queue(new Consumer<Message>()
+        {
+            @Override
+            public void accept(Message t)
+            {
+                System.out.printf("Sent Message %s\n", t.getIdLong());
+            }
+        });
+
+    }
+
+    @Override
+    public void onGuildReady(@NotNull GuildReadyEvent event) {
+        event.getGuild().upsertCommand(Commands.slash("setwhitelistchannel", "setwhitelistchannel").setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR))).queue();
+    }
+
+    @Override
+    public void onGuildJoin(@NotNull GuildJoinEvent event) {
+        event.getGuild().upsertCommand(Commands.slash("setwhitelistchannel", "setwhitelistchannel").setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR))).queue();
+    }
 
     public boolean isWhitelisted(String name){
         for (OfflinePlayer player : Main.getPlugin().getServer().getWhitelistedPlayers()) {

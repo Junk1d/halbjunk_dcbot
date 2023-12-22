@@ -11,33 +11,20 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.events.session.ReadyEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Time;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
 
 public final class Main extends JavaPlugin {
     FileConfiguration config;
@@ -48,6 +35,7 @@ public final class Main extends JavaPlugin {
     private static JavaPlugin thisPlugin;
     public static JDA bot;
     public static Scoreboard board;
+
 
 
     @Override
@@ -83,11 +71,20 @@ public final class Main extends JavaPlugin {
             }
         }
 
-
-
         FileSaveLoad.dcIdsLoader();
-
-
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
+        String statusChannelId = config.getString("statusChannel");
+        if(statusChannelId !=null){
+            Status.statusChannelId = statusChannelId;
+        }
+        String statusMessageId = config.getString("statusMessage");
+        if(statusMessageId !=null){
+            Status.statusMessageId = statusMessageId;
+        }
+        String domain = config.getString("domain");
+        if(domain !=null){
+            Status.domain = domain;
+        }
 
 
 
@@ -98,7 +95,7 @@ public final class Main extends JavaPlugin {
         //Minecraft load
         getServer().getPluginManager().registerEvents(new McJoinLeaveListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
-        //getServer().getPluginManager().registerEvents(new PlayerAdvancementDoneListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerAdvancementDoneListener(), this);
         getServer().getPluginManager().registerEvents(new McChatBroadcastListener(), this);
         getServer().getPluginManager().registerEvents(new CommandListener(), this);
 
@@ -107,7 +104,6 @@ public final class Main extends JavaPlugin {
         Path path = Paths.get(Main.getPlugin().getDataFolder() + "/secret.txt");
         try {
             token = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            System.out.println("Secret value read from file: " + token);
         } catch (IOException e) {
             System.out.println("Error reading secret value from file: " + e.getMessage());
             return;

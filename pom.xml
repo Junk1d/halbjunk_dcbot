@@ -74,12 +74,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>5.0.0-beta.10</version>
-        </dependency>
-        <dependency>
-            <groupId>de.halbjunk</groupId>
-            <artifactId>dcbot</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>5.0.0-beta.18</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
