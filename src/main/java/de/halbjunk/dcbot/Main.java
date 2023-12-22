@@ -56,6 +56,7 @@ public final class Main extends JavaPlugin {
 //        String user = "root";
 //        String pass = "";
 //
+
 //        try {
 //            Connection con = DriverManager.getConnection(url, user, pass);
 //            System.out.println("Verbindung erfolgreich hergestellt");
