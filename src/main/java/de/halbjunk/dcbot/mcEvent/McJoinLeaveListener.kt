@@ -1,73 +1,53 @@
-package de.halbjunk.dcbot.mcEvent;
+package de.halbjunk.dcbot.mcEvent
 
-import de.halbjunk.dcbot.Main;
-import de.halbjunk.dcbot.Status;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Activity;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scoreboard.Team;
+import de.halbjunk.dcbot.Main
+import de.halbjunk.dcbot.Status.Companion.updateStatus
+import net.dv8tion.jda.api.entities.Activity
+import org.bukkit.ChatColor
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerLoginEvent
+import org.bukkit.event.player.PlayerQuitEvent
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class McJoinLeaveListener implements Listener {
+class McJoinLeaveListener : Listener {
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-
-        Main.bot.getPresence().setActivity(Activity.streaming(event.getPlayer().getDisplayName() + " betreten", "https://twitch.tv/junk1d"));
-
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Status.updateStatus();
+    fun onPlayerJoin(event: PlayerJoinEvent) {
+        Main.bot!!.presence.activity = Activity.streaming(event.player.displayName + " betreten", "https://twitch.tv/junk1d")
+        val timer = Timer()
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                updateStatus()
             }
-        }, 0);
-
+        }, 0)
     }
 
-
     @EventHandler
-    public void onPlayerLogin(PlayerLoginEvent event) {
-        if (!event.getPlayer().isWhitelisted()) {
-            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, ChatColor.RED + "Du bist nicht auf der Whitelist!");
-            return;
+    fun onPlayerLogin(event: PlayerLoginEvent) {
+        if (!event.player.isWhitelisted) {
+            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, ChatColor.RED.toString() + "Du bist nicht auf der Whitelist!")
+            return
         }
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime targetDateTime = LocalDateTime.of(2023, 6, 10, 12, 0, 0);
-        if(!event.getPlayer().isOp()){
-            if (now.isBefore(targetDateTime)){
-                event.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.DARK_RED + "Der Server startet erst am " + targetDateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) + " um " + targetDateTime.format(DateTimeFormatter.ofPattern("HH:mm")) + " Uhr");
+        val now = LocalDateTime.now()
+        val targetDateTime = LocalDateTime.of(2023, 6, 10, 12, 0, 0)
+        if (!event.player.isOp) {
+            if (now.isBefore(targetDateTime)) {
+                event.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.DARK_RED.toString() + "Der Server startet erst am " + targetDateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) + " um " + targetDateTime.format(DateTimeFormatter.ofPattern("HH:mm")) + " Uhr")
             }
         }
     }
 
-
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event){
-
-        Main.bot.getPresence().setActivity(Activity.streaming(event.getPlayer().getDisplayName() + " verlassen", "https://twitch.tv/junk1d"));
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Status.updateStatus();
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        Main.bot!!.presence.activity = Activity.streaming(event.player.displayName + " verlassen", "https://twitch.tv/junk1d")
+        val timer = Timer()
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                updateStatus()
             }
-        }, 15);
+        }, 15)
     }
-
-
-
-
 }

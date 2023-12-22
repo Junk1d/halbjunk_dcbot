@@ -1,27 +1,22 @@
-package de.halbjunk.dcbot.dcEvent;
+package de.halbjunk.dcbot.dcEvent
 
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.bukkit.Bukkit
 
-public class MSG extends ListenerAdapter {
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (event.getName().equals("message")) {
-            event.deferReply().queue(); // Bestätigung der Slash-Antwort
-
-            String playerName = event.getOption("spielername").getAsString();
-            String message = event.getOption("nachricht").getAsString();
-
-            Player player = Bukkit.getPlayerExact(playerName);
-            if (player == null || !player.isOnline()) {
-                event.getHook().sendMessage("Spieler nicht gefunden oder offline.").queue();
-                return;
+class MSG : ListenerAdapter() {
+    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
+        if (event.name == "message") {
+            event.deferReply().queue() // Bestätigung der Slash-Antwort
+            val playerName = event.getOption("spielername")!!.asString
+            val message = event.getOption("nachricht")!!.asString
+            val player = Bukkit.getPlayerExact(playerName)
+            if (player == null || !player.isOnline) {
+                event.hook.sendMessage("Spieler nicht gefunden oder offline.").queue()
+                return
             }
-
-            player.sendMessage("[Discord] Geheime Nachricht: " + message);
-            event.getHook().sendMessage("Nachricht erfolgreich an " + playerName + " gesendet.").queue();
+            player.sendMessage("[Discord] Geheime Nachricht: $message")
+            event.hook.sendMessage("Nachricht erfolgreich an $playerName gesendet.").queue()
         }
     }
 }

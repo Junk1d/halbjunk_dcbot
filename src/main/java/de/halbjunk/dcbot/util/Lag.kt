@@ -1,42 +1,32 @@
-package de.halbjunk.dcbot.util;
+package de.halbjunk.dcbot.util
 
-public class Lag
-        implements Runnable
-{
-    public static int TICK_COUNT= 0;
-    public static long[] TICKS= new long[600];
-    public static long LAST_TICK= 0L;
-
-    public static double getTPS()
-    {
-        return getTPS(100);
+class Lag : Runnable {
+    override fun run() {
+        TICKS[TICK_COUNT % TICKS.size] = System.currentTimeMillis()
+        TICK_COUNT += 1
     }
 
-    public static double getTPS(int ticks)
-    {
-        if (TICK_COUNT< ticks) {
-            return 20.0D;
-        }
-        int target = (TICK_COUNT- 1 - ticks) % TICKS.length;
-        long elapsed = System.currentTimeMillis() - TICKS[target];
+    companion object {
+        var TICK_COUNT = 0
+        var TICKS = LongArray(600)
+        var LAST_TICK = 0L
+        val tPS: Double
+            get() = getTPS(100)
 
-        return ticks / (elapsed / 1000.0D);
-    }
-
-    public static long getElapsed(int tickID)
-    {
-        if (TICK_COUNT- tickID >= TICKS.length)
-        {
+        fun getTPS(ticks: Int): Double {
+            if (TICK_COUNT < ticks) {
+                return 20.0
+            }
+            val target = (TICK_COUNT - 1 - ticks) % TICKS.size
+            val elapsed = System.currentTimeMillis() - TICKS[target]
+            return ticks / (elapsed / 1000.0)
         }
 
-        long time = TICKS[(tickID % TICKS.length)];
-        return System.currentTimeMillis() - time;
-    }
-
-    public void run()
-    {
-        TICKS[(TICK_COUNT% TICKS.length)] = System.currentTimeMillis();
-
-        TICK_COUNT+= 1;
+        fun getElapsed(tickID: Int): Long {
+            if (TICK_COUNT - tickID >= TICKS.size) {
+            }
+            val time = TICKS[tickID % TICKS.size]
+            return System.currentTimeMillis() - time
+        }
     }
 }

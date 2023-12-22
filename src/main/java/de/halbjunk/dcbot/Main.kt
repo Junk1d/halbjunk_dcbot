@@ -1,45 +1,31 @@
-package de.halbjunk.dcbot;
+package de.halbjunk.dcbot
 
-import de.halbjunk.dcbot.clans.Clan;
-import de.halbjunk.dcbot.clans.ClanMCCommand;
-import de.halbjunk.dcbot.dcEvent.DcChatBroadcastListener;
-import de.halbjunk.dcbot.dcEvent.GuildMemberRemove;
-import de.halbjunk.dcbot.dcEvent.WhitelistListener;
-import de.halbjunk.dcbot.mcEvent.*;
-import de.halbjunk.dcbot.util.Lag;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
+import de.halbjunk.dcbot.clans.Clan
+import de.halbjunk.dcbot.clans.ClanMCCommand
+import de.halbjunk.dcbot.dcEvent.DcChatBroadcastListener
+import de.halbjunk.dcbot.dcEvent.GuildMemberRemove
+import de.halbjunk.dcbot.dcEvent.WhitelistListener
+import de.halbjunk.dcbot.mcEvent.*
+import de.halbjunk.dcbot.util.Lag
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.OnlineStatus
+import net.dv8tion.jda.api.entities.Activity
+import net.dv8tion.jda.api.requests.GatewayIntent
+import org.bukkit.Bukkit
+import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scoreboard.Scoreboard
+import java.io.File
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
-
-public final class Main extends JavaPlugin {
-    FileConfiguration config;
-    public static File file;
-    public static File clanFile;
-    public static HashMap<String,String> dcToMcID = new HashMap<>();
-    public static HashMap<String, Clan> clans = new HashMap<>();
-    private static JavaPlugin thisPlugin;
-    public static JDA bot;
-    public static Scoreboard board;
-
-
-
-    @Override
-    public void onEnable() {
+class Main : JavaPlugin() {
+//    var config: FileConfiguration? = null
+    override fun onEnable() {
 //        String url = "jdbc:mysql://localhost:3306/falconbyte";
 //        String user = "root";
 //        String pass = "";
@@ -52,123 +38,105 @@ public final class Main extends JavaPlugin {
 //        } catch (SQLException e) {
 //            System.out.println(e.getMessage());
 //        }
-
-
-        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Lag(), 100L, 1L);
-
-
-
-        thisPlugin = this;
-        board = Bukkit.getScoreboardManager().getMainScoreboard();
-
-
-        file = new File (getDataFolder(), "config.yml");
-        if (!file.exists()){
-            getDataFolder().mkdir();
+        Bukkit.getServer().scheduler.scheduleSyncRepeatingTask(this, Lag(), 100L, 1L)
+        plugin = this
+        board = Bukkit.getScoreboardManager()!!.mainScoreboard
+        Companion.file = File(dataFolder, "config.yml")
+        if (!Companion.file!!.exists()) {
+            dataFolder.mkdir()
             try {
-                file.createNewFile();
-            } catch (IOException e) {
-                System.out.println("config.yml konnte nicht erstellt werden!!!");
+                Companion.file!!.createNewFile()
+            } catch (e: IOException) {
+                println("config.yml konnte nicht erstellt werden!!!")
             }
         }
-
-        FileSaveLoad.dcIdsLoader();
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        String statusChannelId = config.getString("statusChannel");
-        if(statusChannelId !=null){
-            Status.statusChannelId = statusChannelId;
+        FileSaveLoad.dcIdsLoader()
+        val configs = YamlConfiguration.loadConfiguration(Companion.file!!)
+        val statusChannelId = configs.getString("statusChannel")
+        if (statusChannelId != null) {
+            Status.statusChannelId = statusChannelId
         }
-        String statusMessageId = config.getString("statusMessage");
-        if(statusMessageId !=null){
-            Status.statusMessageId = statusMessageId;
+        val statusMessageId = configs.getString("statusMessage")
+        if (statusMessageId != null) {
+            Status.statusMessageId = statusMessageId
         }
-        String domain = config.getString("domain");
-        if(domain !=null){
-            Status.domain = domain;
+        val domain = configs.getString("domain")
+        if (domain != null) {
+            Status.domain = domain
         }
-
-
-
-
-
 
 
         //Minecraft load
-        getServer().getPluginManager().registerEvents(new McJoinLeaveListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerAdvancementDoneListener(), this);
-        getServer().getPluginManager().registerEvents(new McChatBroadcastListener(), this);
-        getServer().getPluginManager().registerEvents(new CommandListener(), this);
-
-        getCommand("clan").setExecutor(new ClanMCCommand());
-        String token;
-        Path path = Paths.get(Main.getPlugin().getDataFolder() + "/secret.txt");
-        try {
-            token = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            System.out.println("Error reading secret value from file: " + e.getMessage());
-            return;
+        server.pluginManager.registerEvents(McJoinLeaveListener(), this)
+        server.pluginManager.registerEvents(PlayerDeathListener(), this)
+        server.pluginManager.registerEvents(PlayerAdvancementDoneListener(), this)
+        server.pluginManager.registerEvents(McChatBroadcastListener(), this)
+        server.pluginManager.registerEvents(CommandListener(), this)
+        getCommand("clan")!!.setExecutor(ClanMCCommand())
+        val token: String
+        val path = Paths.get(Main.plugin?.getDataFolder().toString() + "/secret.txt")
+        token = try {
+            String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+        } catch (e: IOException) {
+            println("Error reading secret value from file: " + e.message)
+            return
         }
 
 
         //Discord load
-        JDABuilder builder = JDABuilder.createDefault(token);
-
-        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT);
-
-        builder.setStatus(OnlineStatus.ONLINE);
+        val builder = JDABuilder.createDefault(token)
+        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
+        builder.setStatus(OnlineStatus.ONLINE)
         //builder.setActivity(Activity.playing("HalbJunk.de mit " + 0 + " Leuten"));
-        builder.setActivity(Activity.streaming("Server Online", "https://twitch.tv/junk1d"));
-        builder.addEventListeners( new WhitelistListener());
-        builder.addEventListeners(new GuildMemberRemove());
-        builder.addEventListeners(new Status());
-        builder.addEventListeners(new DcChatBroadcastListener());
-
-
-        bot = builder.build();
-        System.out.println("Online");
+        builder.setActivity(Activity.streaming("Server Online", "https://twitch.tv/junk1d"))
+        builder.addEventListeners(WhitelistListener())
+        builder.addEventListeners(GuildMemberRemove())
+        builder.addEventListeners(Status())
+        builder.addEventListeners(DcChatBroadcastListener())
+        bot = builder.build()
+        println("Online")
 
 
         //bot.getPresence().setActivity(Activity.playing("HalbJunk.de"));
     }
 
-
-    @Override
-    public void onDisable() {
+    override fun onDisable() {
         // Plugin shutdown logic
-        Status.stopStatusUpdateTask();
-
-
-
-
+        Status.stopStatusUpdateTask()
         try {
-            FileSaveLoad.dcIdsSaver();
-        } catch (IOException e) {
-            e.printStackTrace();
+            FileSaveLoad.dcIdsSaver()
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-
         try {
-            FileSaveLoad.clanSaver();
-        } catch (IOException e) {
+            FileSaveLoad.clanSaver()
+        } catch (e: IOException) {
             try {
-                FileSaveLoad.clanSaver();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                FileSaveLoad.clanSaver()
+            } catch (ex: IOException) {
+                ex.printStackTrace()
             }
-            e.printStackTrace();
+            e.printStackTrace()
         }
-        if(bot != null){
-            bot.shutdown();
+        if (bot != null) {
+            bot!!.shutdown()
         }
-
     }
 
-
-    public static JavaPlugin getPlugin() {
-        return thisPlugin;
+    companion object {
+        @JvmField
+        var file: File? = null
+        @JvmField
+        var clanFile: File? = null
+        @JvmField
+        var dcToMcID = HashMap<String, String>()
+        @JvmField
+        var clans = HashMap<String, Clan>()
+        @JvmField
+        var plugin: JavaPlugin? = null
+        @JvmField
+        var bot: JDA? = null
+        @JvmField
+        var board: Scoreboard? = null
     }
 }
-
-
-
-//TODO Message Sever Status

@@ -1,163 +1,134 @@
-package de.halbjunk.dcbot;
+package de.halbjunk.dcbot
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.internal.LinkedTreeMap;
-import de.halbjunk.dcbot.clans.Clan;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.scoreboard.Team;
+import com.google.gson.GsonBuilder
+import com.google.gson.internal.LinkedTreeMap
+import de.halbjunk.dcbot.clans.Clan
+import org.bukkit.configuration.file.YamlConfiguration
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class FileSaveLoad {
-    public static void mapSaver(Map map, String nameMap) throws IOException {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        config.set( nameMap , map);
-        config.save(Main.file);
+object FileSaveLoad {
+    @Throws(IOException::class)
+    fun mapSaver(map: Map<*, *>?, nameMap: String?) {
+        val config = YamlConfiguration.loadConfiguration(Main.file!!)
+        config[nameMap!!] = map
+        config.save(Main.file!!)
     }
-    public static HashMap maploader(String nameMap){
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        ConfigurationSection section = config.getConfigurationSection(nameMap);
-        if (section == null) return new HashMap<>();
-        Map<String, Object> loadedMap = section.getValues(false);
-        Map<String, String> map = new HashMap<>();
-        for (Map.Entry<String, Object> entry : loadedMap.entrySet()) {
-            String key = entry.getKey();
-            String value = (String) entry.getValue();
-            map.put(key, value);
+
+    fun maploader(nameMap: String?): HashMap<*, *> {
+        val config = YamlConfiguration.loadConfiguration(Main.file!!)
+        val section = config.getConfigurationSection(nameMap!!) ?: return HashMap<Any, Any>()
+        val loadedMap = section.getValues(false)
+        val map: MutableMap<String, String> = HashMap()
+        for ((key, value1) in loadedMap) {
+            val value = value1 as String
+            map[key] = value
         }
-        return (HashMap) map;
+        return map as HashMap<*, *>
     }
 
-    public static void dcIdsSaver() throws IOException {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        config.set( "dcToMcID" , Main.dcToMcID);
-        config.save(Main.file);
+    @Throws(IOException::class)
+    fun dcIdsSaver() {
+        val config = YamlConfiguration.loadConfiguration(Main.file!!)
+        config["dcToMcID"] = Main.dcToMcID
+        config.save(Main.file!!)
     }
 
-
-    public static void dcIdsLoader(){
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        ConfigurationSection section = config.getConfigurationSection("dcToMcID");
-        if (section == null){
-            Main.dcToMcID = new HashMap<>();
-            return;
+    fun dcIdsLoader() {
+        val config = YamlConfiguration.loadConfiguration(Main.file!!)
+        val section = config.getConfigurationSection("dcToMcID")
+        if (section == null) {
+            Main.dcToMcID = HashMap()
+            return
         }
-        Map<String, Object> loadedMap = section.getValues(false);
-        HashMap<String, String> map = new HashMap<>();
-        for (Map.Entry<String, Object> entry : loadedMap.entrySet()) {
-            String key = entry.getKey();
-            String value = (String) entry.getValue();
-
-            for (OfflinePlayer player : Main.getPlugin().getServer().getWhitelistedPlayers()) {
-                if( player.getUniqueId().toString().equalsIgnoreCase(value)){
-                    map.put(key, value);
+        val loadedMap = section.getValues(false)
+        val map = HashMap<String, String>()
+        for ((key, value1) in loadedMap) {
+            val value = value1 as String
+            for (player in Main.plugin!!.server.whitelistedPlayers) {
+                if (player.uniqueId.toString().equals(value, ignoreCase = true)) {
+                    map[key] = value
                 }
             }
         }
-        for (OfflinePlayer player : Main.getPlugin().getServer().getWhitelistedPlayers()) {
-            if(!map.containsValue(player.getUniqueId().toString())){
-                player.setWhitelisted(false);
+        for (player in Main.plugin!!.server.whitelistedPlayers) {
+            if (!map.containsValue(player.uniqueId.toString())) {
+                player.isWhitelisted = false
             }
         }
-
-        Main.dcToMcID = map;
+        Main.dcToMcID = map
     }
 
-
-
-
-    public static void clanSaver() throws IOException {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    @Throws(IOException::class)
+    fun clanSaver() {
+        val gson = GsonBuilder().setPrettyPrinting().create()
 
 // Konvertiere die Clan-Liste in einen JSON-String
-        String jsonString = gson.toJson(Main.clans);
+        val jsonString = gson.toJson(Main.clans)
 
 // Speichere den JSON-String in einer Datei
-        try (FileWriter fileWriter = new FileWriter(Main.getPlugin().getDataFolder() + "/clans.json")) {
-            fileWriter.write(jsonString);
-        } catch (IOException e) {
-            e.printStackTrace();
+        try {
+            FileWriter(Main.plugin!!.dataFolder.toString() + "/clans.json").use { fileWriter -> fileWriter.write(jsonString) }
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 
-    public static void clanLoader() throws IOException {
-        Gson gson = new GsonBuilder().create();
+    @Throws(IOException::class)
+    fun clanLoader() {
+        val gson = GsonBuilder().create()
 
         // Lese den JSON-String aus der Datei
-        String jsonString = "";
-        try (FileReader fileReader = new FileReader(Main.getPlugin().getDataFolder() + "/clans.json")) {
-            int character;
-            while ((character = fileReader.read()) != -1) {
-                jsonString += (char) character;
+        var jsonString = ""
+        try {
+            FileReader(Main.plugin!!.dataFolder.toString() + "/clans.json").use { fileReader ->
+                var character: Int
+                while (fileReader.read().also { character = it } != -1) {
+                    jsonString += character.toChar()
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-
-        Map<String, LinkedTreeMap> map = gson.fromJson(jsonString, new HashMap<String, LinkedTreeMap>().getClass());
-
-        if(map == null){
-            Main.clans = new HashMap<>();
-            return;
+        val map: Map<String, LinkedTreeMap<*, *>>? = gson.fromJson(jsonString, HashMap<String, LinkedTreeMap<*, *>>().javaClass)
+        if (map == null) {
+            Main.clans = HashMap()
+            return
         }
-
-        for (Map.Entry<String, LinkedTreeMap> entry : map.entrySet()) {
-            String key = entry.getKey();
-            LinkedTreeMap value = entry.getValue();
-
-
-
-            Clan clan = new Clan();
-            clan.setName((String) value.get("name"));
-            clan.setDcCategoryId((String) value.get("dcCategoryId"));
-
-            clan.setRoleId((String) value.get("roleId"));
-            clan.setMemberList((List<String>) value.get("memberList"));
-            clan.setAdminId((String) value.get("adminId"));
-            clan.setModerators((List<String>) value.get("moderators"));
-            clan.setPrefix((String) value.get("prefix"));
-
-
-
-
-            Main.clans.put(key, clan);
-
-            if(Main.board.getTeam(clan.getPrefix()) == null){
-                clan.delete();
-                System.err.println(value.get("prefix") + " wurde gelöscht, da kein Team mit diesem Namen existiert");
+        for ((key, value) in map) {
+            val clan = Clan()
+            clan.name = value["name"] as String?
+            clan.dcCategoryId = value["dcCategoryId"] as String?
+            clan.roleId = value["roleId"] as String?
+            clan.memberList = value["memberList"] as MutableList<String>
+            clan.adminId = value["adminId"] as String?
+            clan.moderators = value["moderators"] as List<String>
+            clan.prefix = value["prefix"] as String?
+            Main.clans[key] = clan
+            if (clan.prefix?.let { Main.board!!.getTeam(it) } == null) {
+                clan.delete()
+                System.err.println(value["prefix"].toString() + " wurde gelöscht, da kein Team mit diesem Namen existiert")
             }
-
         }
-
-        for (Team team: Main.board.getTeams()){
-            if(!Main.clans.containsKey(team.getName())){
-                team.unregister();
-                System.err.println(team.getName() + " wurde gelöscht, da kein Clan mit diesem Namen existiert");
-                System.err.println("Möglicherweise existiert noch der DC Rang und Channel");
+        for (team in Main.board!!.teams) {
+            if (!Main.clans.containsKey(team.name)) {
+                team.unregister()
+                System.err.println(team.name + " wurde gelöscht, da kein Clan mit diesem Namen existiert")
+                System.err.println("Möglicherweise existiert noch der DC Rang und Channel")
             }
         }
     }
 
-
-    public static void listsaver(List list, String nameList) throws IOException {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        config.set(nameList, list);
-        config.save(Main.file);
-    }
-    public static List listLoader(String nameList){
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(Main.file);
-        return config.getStringList(nameList);
+    @Throws(IOException::class)
+    fun listsaver(list: List<*>?, nameList: String?) {
+        val config = YamlConfiguration.loadConfiguration(Main.file!!)
+        config[nameList!!] = list
+        config.save(Main.file!!)
     }
 
-
-
-
+    fun listLoader(nameList: String?): List<*> {
+        val config = YamlConfiguration.loadConfiguration(Main.file!!)
+        return config.getStringList(nameList!!)
+    }
 }
